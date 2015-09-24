@@ -7,7 +7,7 @@ require_once __DIR__.'/vendor/aws-autoloader.php';
 use Core\ObjectStorage\ObjectStorageInterface;
 use Core\ObjectStorage\ObjectStorageException;
 use Aws\S3\S3Client;
-use Aws\Exception\S3Exception;
+use Aws\S3\Exception\S3Exception;
 use Aws\Credentials\Credentials;
 
 /**
