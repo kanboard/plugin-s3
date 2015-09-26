@@ -22,4 +22,24 @@ class Plugin extends Base
             );
         };
     }
+
+    public function getPluginName()
+    {
+        return 'AWS S3';
+    }
+
+    public function getPluginDescription()
+    {
+        return t('This plugin stores uploaded files to Amazon S3');
+    }
+
+    public function getPluginAuthor()
+    {
+        return 'Frédéric Guillot';
+    }
+
+    public function getPluginVersion()
+    {
+        return '1.0.0';
+    }
 }
