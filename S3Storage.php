@@ -1,11 +1,11 @@
 <?php
 
-namespace Plugin\S3;
+namespace Kanboard\Plugin\S3;
 
 require_once __DIR__.'/vendor/aws-autoloader.php';
 
-use Core\ObjectStorage\ObjectStorageInterface;
-use Core\ObjectStorage\ObjectStorageException;
+use Kanboard\Core\ObjectStorage\ObjectStorageInterface;
+use Kanboard\Core\ObjectStorage\ObjectStorageException;
 use Aws\S3\S3Client;
 use Aws\S3\Exception\S3Exception;
 use Aws\Credentials\Credentials;

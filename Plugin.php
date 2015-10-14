@@ -1,8 +1,8 @@
 <?php
 
-namespace Plugin\S3;
+namespace Kanboard\Plugin\S3;
 
-use Core\Plugin\Base;
+use Kanboard\Core\Plugin\Base;
 
 defined('AWS_KEY') or define('AWS_KEY', '');
 defined('AWS_SECRET') or define('AWS_SECRET', '');
