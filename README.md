@@ -9,6 +9,12 @@ Author
 - Frederic Guillot
 - License MIT
 
+Requirements
+------------
+
+- PHP >= 5.5
+- Amazon AWS account
+
 Installation
 ------------
 

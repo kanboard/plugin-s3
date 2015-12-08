@@ -13,14 +13,11 @@ class Plugin extends Base
 {
     public function initialize()
     {
-        $this->container['objectStorage'] = function() {
-            return new S3Storage(
-                AWS_KEY,
-                AWS_SECRET,
-                AWS_S3_REGION,
-                AWS_S3_BUCKET
-            );
-        };
+        if ($this->isConfigured()) {
+            $this->container['objectStorage'] = function() {
+                return new S3Storage(AWS_KEY, AWS_SECRET, AWS_S3_REGION, AWS_S3_BUCKET);
+            };
+        }
     }
 
     public function getPluginName()
@@ -40,11 +37,21 @@ class Plugin extends Base
 
     public function getPluginVersion()
     {
-        return '1.0.0';
+        return '1.0.1';
     }
 
     public function getPluginHomepage()
     {
         return 'https://github.com/kanboard/plugin-s3';
+    }
+
+    private function isConfigured()
+    {
+        if (! AWS_KEY || ! AWS_SECRET || ! AWS_S3_REGION || ! AWS_S3_BUCKET) {
+            $this->logger->info('Plugin AWS S3 not configured!');
+            return false;
+        }
+
+        return true;
     }
 }
