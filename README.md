@@ -1,6 +1,8 @@
 AWS S3 plugin for Kanboard
 ==========================
 
+[![Build Status](https://travis-ci.org/kanboard/plugin-s3.svg?branch=master)](https://travis-ci.org/kanboard/plugin-s3)
+
 This plugin stores uploaded files to Amazon S3 instead of storing files on the local filesystem.
 
 Author
