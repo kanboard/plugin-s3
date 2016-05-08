@@ -18,7 +18,14 @@ use Aws\Credentials\Credentials;
  */
 class S3Storage implements ObjectStorageInterface
 {
+    /**
+     * @var S3Client
+     */
     private $client;
+
+    /**
+     * @var string
+     */
     private $bucket;
 
     /**
@@ -48,6 +55,7 @@ class S3Storage implements ObjectStorageInterface
      * @access public
      * @param  string  $key
      * @return string
+     * @throws ObjectStorageException
      */
     public function get($key)
     {
@@ -59,8 +67,7 @@ class S3Storage implements ObjectStorageInterface
             ));
 
             return $result['Body'];
-        }
-        catch (S3Exception $e) {
+        } catch (S3Exception $e) {
             throw new ObjectStorageException($e->getMessage());
         }
     }
@@ -71,7 +78,8 @@ class S3Storage implements ObjectStorageInterface
      * @access public
      * @param  string  $key
      * @param  string  $blob
-     * @return string
+     * @return boolean
+     * @throws ObjectStorageException
      */
     public function put($key, &$blob)
     {
@@ -83,12 +91,11 @@ class S3Storage implements ObjectStorageInterface
                 'Body' => $blob,
             ));
 
-            return true;
-        }
-        catch (S3Exception $e) {
+        } catch (S3Exception $e) {
             throw new ObjectStorageException($e->getMessage());
-            return false;
         }
+
+        return true;
     }
 
     /**
@@ -109,6 +116,7 @@ class S3Storage implements ObjectStorageInterface
      * @param  string  $filename
      * @param  string  $key
      * @return boolean
+     * @throws ObjectStorageException
      */
     public function moveFile($filename, $key)
     {
@@ -122,12 +130,11 @@ class S3Storage implements ObjectStorageInterface
 
             @unlink($filename);
 
-            return true;
-        }
-        catch (S3Exception $e) {
+        } catch (S3Exception $e) {
             throw new ObjectStorageException($e->getMessage());
-            return false;
         }
+
+        return true;
     }
 
     /**
@@ -149,6 +156,7 @@ class S3Storage implements ObjectStorageInterface
      * @access public
      * @param  string  $key
      * @return boolean
+     * @throws ObjectStorageException
      */
     public function remove($key)
     {
@@ -159,11 +167,10 @@ class S3Storage implements ObjectStorageInterface
                 'Key' => $key,
             ));
 
-            return true;
-        }
-        catch (S3Exception $e) {
+        } catch (S3Exception $e) {
             throw new ObjectStorageException($e->getMessage());
-            return false;
         }
+
+        return true;
     }
 }
