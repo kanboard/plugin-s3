@@ -56,5 +56,4 @@ define('AWS_S3_REGION', 'us-east-1');
 
 ### Notes
 
-- If the S3 prefix is defined, all files will be save to `s3://YOUR_BUCKET/YOUR_PREFIX/path/to/object`
-I
+- If the S3 prefix is defined, all files will be save to `s3://YOUR_BUCKET/YOUR_PREFIX/path/to/object`.
