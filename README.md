@@ -20,14 +20,27 @@ Requirements
 Installation
 ------------
 
-Amazon configuration:
+You have the choice between 3 methods:
 
-- With the Amazon Web Services console, create a new bucket for Kanboard
+1. Install the plugin from the Kanboard plugin manager in one click
+2. Download the zip file and decompress everything under the directory `plugins/S3`
+3. Clone this repository into the folder `plugins/S3`
 
-Plugin installation:
+Note: Plugin folder is case-sensitive.
 
-- Create a folder **plugins/S3**
-- Copy all files under this directory
+Configuration
+-------------
+
+You can configure this plugin through the user interface or with the config file. 
+Use the config file if you don't want to store AWS credentials into the database.
+
+### With the user interface
+
+Go to **Settings > Integrations > Amazon S3 Storage**:
+
+![s3](https://cloud.githubusercontent.com/assets/323546/15444333/64fdc1a4-1ebd-11e6-95d0-ec57a5b42afb.png)
+
+### With the config file
 
 Add those config parameters in your `config.php`:
 
@@ -35,5 +48,13 @@ Add those config parameters in your `config.php`:
 define('AWS_KEY', 'YOUR_API_KEY');
 define('AWS_SECRET', 'YOUR_API_SECRET');
 define('AWS_S3_BUCKET', 'YOUR_BUCKET_NAME');
-define('AWS_S3_REGION', 'us-east-1'); // Define your bucket region
+define('AWS_S3_PREFIX', '');
+
+// Set the region of your bucket
+define('AWS_S3_REGION', 'us-east-1');
 ```
+
+### Notes
+
+- If the S3 prefix is defined, all files will be save to `s3://YOUR_BUCKET/YOUR_PREFIX/path/to/object`
+I

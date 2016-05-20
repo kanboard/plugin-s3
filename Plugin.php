@@ -3,11 +3,13 @@
 namespace Kanboard\Plugin\S3;
 
 use Kanboard\Core\Plugin\Base;
+use Kanboard\Core\Translator;
 
 defined('AWS_KEY') or define('AWS_KEY', '');
 defined('AWS_SECRET') or define('AWS_SECRET', '');
 defined('AWS_S3_BUCKET') or define('AWS_S3_BUCKET', '');
 defined('AWS_S3_REGION') or define('AWS_S3_REGION', 'us-east-1');
+defined('AWS_S3_PREFIX') or define('AWS_S3_PREFIX', '');
 
 class Plugin extends Base
 {
@@ -15,19 +17,32 @@ class Plugin extends Base
     {
         if ($this->isConfigured()) {
             $this->container['objectStorage'] = function() {
-                return new S3Storage(AWS_KEY, AWS_SECRET, AWS_S3_REGION, AWS_S3_BUCKET);
+                return new S3Storage(
+                    $this->getAwsAccessKey(),
+                    $this->getAwsSecretKey(),
+                    $this->getAwsRegion(),
+                    $this->getAwsBucket(),
+                    $this->getAwsPrefix()
+                );
             };
         }
+
+        $this->template->hook->attach('template:config:integrations', 's3:config');
+    }
+
+    public function onStartup()
+    {
+        Translator::load($this->language->getCurrentLanguage(), __DIR__.'/Locale');
     }
 
     public function getPluginName()
     {
-        return 'AWS S3';
+        return 'Amazon S3 Storage';
     }
 
     public function getPluginDescription()
     {
-        return t('This plugin stores uploaded files to Amazon S3');
+        return t('This plugin stores files to Amazon S3');
     }
 
     public function getPluginAuthor()
@@ -37,7 +52,7 @@ class Plugin extends Base
 
     public function getPluginVersion()
     {
-        return '1.0.1';
+        return '1.0.2';
     }
 
     public function getPluginHomepage()
@@ -47,11 +62,56 @@ class Plugin extends Base
 
     private function isConfigured()
     {
-        if (! AWS_KEY || ! AWS_SECRET || ! AWS_S3_REGION || ! AWS_S3_BUCKET) {
+        if (!$this->getAwsAccessKey() || !$this->getAwsSecretKey() || !$this->getAwsRegion() || !$this->getAwsBucket()) {
             $this->logger->info('Plugin AWS S3 not configured!');
             return false;
         }
 
         return true;
+    }
+
+    private function getAwsAccessKey()
+    {
+        if (AWS_KEY) {
+            return AWS_KEY;
+        }
+
+        return $this->config->get('aws_access_key_id');
+    }
+
+    private function getAwsSecretKey()
+    {
+        if (AWS_SECRET) {
+            return AWS_SECRET;
+        }
+
+        return $this->config->get('aws_secret_access_key');
+    }
+
+    private function getAwsRegion()
+    {
+        if (AWS_S3_REGION) {
+            return AWS_S3_REGION;
+        }
+
+        return $this->config->get('aws_s3_region');
+    }
+
+    private function getAwsBucket()
+    {
+        if (AWS_S3_BUCKET) {
+            return AWS_S3_BUCKET;
+        }
+
+        return $this->config->get('aws_s3_bucket');
+    }
+
+    private function getAwsPrefix()
+    {
+        if (AWS_S3_PREFIX) {
+            return AWS_S3_PREFIX;
+        }
+
+        return $this->config->get('aws_s3_prefix');
     }
 }

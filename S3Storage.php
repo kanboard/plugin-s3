@@ -7,7 +7,6 @@ require_once __DIR__.'/vendor/aws-autoloader.php';
 use Kanboard\Core\ObjectStorage\ObjectStorageInterface;
 use Kanboard\Core\ObjectStorage\ObjectStorageException;
 use Aws\S3\S3Client;
-use Aws\S3\Exception\S3Exception;
 use Aws\Credentials\Credentials;
 
 /**
@@ -26,27 +25,36 @@ class S3Storage implements ObjectStorageInterface
     /**
      * @var string
      */
-    private $bucket;
+    private $bucket = '';
+
+    /**
+     * @var string
+     */
+    private $prefix = '';
 
     /**
      * Constructor
      *
      * @access public
-     * @param  string  $key      AWS API Key
-     * @param  string  $secret   AWS API Secret
-     * @param  string  $region   AWS S3 Region
-     * @param  string  $bucket   AWS S3 bucket
+     * @param  string $key    AWS API Key
+     * @param  string $secret AWS API Secret
+     * @param  string $region AWS S3 Region
+     * @param  string $bucket AWS S3 bucket
+     * @param  string $prefix Object prefix
      */
-    public function __construct($key, $secret, $region, $bucket)
+    public function __construct($key, $secret, $region, $bucket, $prefix)
     {
         $this->bucket = $bucket;
         $credentials = new Credentials($key, $secret);
 
-        $this->client = S3Client::factory(array(
+        $this->client = new S3Client([
             'credentials' => $credentials,
             'region' => $region,
             'version' => '2006-03-01',
-        ));
+        ]);
+
+        $this->client->registerStreamWrapper();
+        $this->prefix = $prefix;
     }
 
     /**
@@ -55,21 +63,17 @@ class S3Storage implements ObjectStorageInterface
      * @access public
      * @param  string  $key
      * @return string
-     * @throws ObjectStorageException
+     * @throws  ObjectStorageException
      */
     public function get($key)
     {
-        try {
+        $data = file_get_contents($this->getObjectPath($key));
 
-            $result = $this->client->getObject(array(
-                'Bucket' => $this->bucket,
-                'Key' => $key,
-            ));
-
-            return $result['Body'];
-        } catch (S3Exception $e) {
-            throw new ObjectStorageException($e->getMessage());
+        if ($data === false) {
+            throw new ObjectStorageException('Object not found');
         }
+
+        return $data;
     }
 
     /**
@@ -83,16 +87,8 @@ class S3Storage implements ObjectStorageInterface
      */
     public function put($key, &$blob)
     {
-        try {
-
-            $this->client->putObject(array(
-                'Bucket' => $this->bucket,
-                'Key' => $key,
-                'Body' => $blob,
-            ));
-
-        } catch (S3Exception $e) {
-            throw new ObjectStorageException($e->getMessage());
+        if (file_put_contents($this->getObjectPath($key), $blob) === false) {
+            throw new ObjectStorageException('Unable to save object');
         }
 
         return true;
@@ -106,7 +102,7 @@ class S3Storage implements ObjectStorageInterface
      */
     public function output($key)
     {
-        echo $this->get($key);
+        readfile($this->getObjectPath($key));
     }
 
     /**
@@ -120,20 +116,11 @@ class S3Storage implements ObjectStorageInterface
      */
     public function moveFile($filename, $key)
     {
-        try {
-
-            $this->client->putObject(array(
-                'Bucket' => $this->bucket,
-                'Key' => $key,
-                'SourceFile' => $filename,
-            ));
-
-            @unlink($filename);
-
-        } catch (S3Exception $e) {
-            throw new ObjectStorageException($e->getMessage());
+        if (file_put_contents($this->getObjectPath($key), file_get_contents($filename)) === false) {
+            throw new ObjectStorageException('Unable to upload file');
         }
 
+        unlink($filename);
         return true;
     }
 
@@ -160,17 +147,18 @@ class S3Storage implements ObjectStorageInterface
      */
     public function remove($key)
     {
-        try {
+        return unlink($this->getObjectPath($key));
+    }
 
-            $this->client->deleteObject(array(
-                'Bucket' => $this->bucket,
-                'Key' => $key,
-            ));
-
-        } catch (S3Exception $e) {
-            throw new ObjectStorageException($e->getMessage());
-        }
-
-        return true;
+    /**
+     * Get object URL
+     *
+     * @access private
+     * @param  string $key
+     * @return string
+     */
+    private function getObjectPath($key)
+    {
+        return sprintf('s3://%s/%s%s', $this->bucket, $this->prefix !== '' ? $this->prefix.'/' : '', $key);
     }
 }
