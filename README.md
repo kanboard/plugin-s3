@@ -14,6 +14,7 @@ Author
 Requirements
 ------------
 
+- Kanboard >= 1.0.28
 - PHP >= 5.5
 - Amazon AWS account
 

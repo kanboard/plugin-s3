@@ -67,7 +67,7 @@ class S3Storage implements ObjectStorageInterface
      */
     public function get($key)
     {
-        $data = file_get_contents($this->getObjectPath($key));
+        $data = @file_get_contents($this->getObjectPath($key));
 
         if ($data === false) {
             throw new ObjectStorageException('Object not found');
@@ -87,7 +87,7 @@ class S3Storage implements ObjectStorageInterface
      */
     public function put($key, &$blob)
     {
-        if (file_put_contents($this->getObjectPath($key), $blob) === false) {
+        if (@file_put_contents($this->getObjectPath($key), $blob) === false) {
             throw new ObjectStorageException('Unable to save object');
         }
 
@@ -102,7 +102,7 @@ class S3Storage implements ObjectStorageInterface
      */
     public function output($key)
     {
-        readfile($this->getObjectPath($key));
+        @readfile($this->getObjectPath($key));
     }
 
     /**
@@ -116,7 +116,7 @@ class S3Storage implements ObjectStorageInterface
      */
     public function moveFile($filename, $key)
     {
-        if (file_put_contents($this->getObjectPath($key), file_get_contents($filename)) === false) {
+        if (@file_put_contents($this->getObjectPath($key), file_get_contents($filename)) === false) {
             throw new ObjectStorageException('Unable to upload file');
         }
 
@@ -147,7 +147,7 @@ class S3Storage implements ObjectStorageInterface
      */
     public function remove($key)
     {
-        return unlink($this->getObjectPath($key));
+        return @unlink($this->getObjectPath($key));
     }
 
     /**
