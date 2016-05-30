@@ -32,7 +32,7 @@ class Plugin extends Base
 
     public function onStartup()
     {
-        Translator::load($this->language->getCurrentLanguage(), __DIR__.'/Locale');
+        Translator::load($this->languageModel->getCurrentLanguage(), __DIR__.'/Locale');
     }
 
     public function getPluginName()
@@ -76,7 +76,7 @@ class Plugin extends Base
             return AWS_KEY;
         }
 
-        return $this->config->get('aws_access_key_id');
+        return $this->configModel->get('aws_access_key_id');
     }
 
     private function getAwsSecretKey()
@@ -85,7 +85,7 @@ class Plugin extends Base
             return AWS_SECRET;
         }
 
-        return $this->config->get('aws_secret_access_key');
+        return $this->configModel->get('aws_secret_access_key');
     }
 
     private function getAwsRegion()
@@ -94,7 +94,7 @@ class Plugin extends Base
             return AWS_S3_REGION;
         }
 
-        return $this->config->get('aws_s3_region');
+        return $this->configModel->get('aws_s3_region');
     }
 
     private function getAwsBucket()
@@ -103,7 +103,7 @@ class Plugin extends Base
             return AWS_S3_BUCKET;
         }
 
-        return $this->config->get('aws_s3_bucket');
+        return $this->configModel->get('aws_s3_bucket');
     }
 
     private function getAwsPrefix()
@@ -112,6 +112,6 @@ class Plugin extends Base
             return AWS_S3_PREFIX;
         }
 
-        return $this->config->get('aws_s3_prefix');
+        return $this->configModel->get('aws_s3_prefix');
     }
 }
