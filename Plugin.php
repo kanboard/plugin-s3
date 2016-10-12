@@ -52,7 +52,7 @@ class Plugin extends Base
 
     public function getPluginVersion()
     {
-        return '1.0.2';
+        return '1.0.3';
     }
 
     public function getPluginHomepage()
@@ -60,7 +60,7 @@ class Plugin extends Base
         return 'https://github.com/kanboard/plugin-s3';
     }
 
-    private function isConfigured()
+    public function isConfigured()
     {
         if (!$this->getAwsAccessKey() || !$this->getAwsSecretKey() || !$this->getAwsRegion() || !$this->getAwsBucket()) {
             $this->logger->info('Plugin AWS S3 not configured!');
@@ -70,7 +70,7 @@ class Plugin extends Base
         return true;
     }
 
-    private function getAwsAccessKey()
+    public function getAwsAccessKey()
     {
         if (AWS_KEY) {
             return AWS_KEY;
@@ -79,7 +79,7 @@ class Plugin extends Base
         return $this->configModel->get('aws_access_key_id');
     }
 
-    private function getAwsSecretKey()
+    public function getAwsSecretKey()
     {
         if (AWS_SECRET) {
             return AWS_SECRET;
@@ -88,21 +88,16 @@ class Plugin extends Base
         return $this->configModel->get('aws_secret_access_key');
     }
 
-    private function getAwsRegion()
+    public function getAwsRegion()
     {
         if (AWS_S3_REGION) {
             return AWS_S3_REGION;
         }
 
-        $configRegion = $this->configModel->get('aws_s3_region');
-        if (!$configRegion) {
-            return 'us-east-1';
-        } else {
-            return $configRegion;
-        }
+        return $this->configModel->get('aws_s3_region');
     }
 
-    private function getAwsBucket()
+    public function getAwsBucket()
     {
         if (AWS_S3_BUCKET) {
             return AWS_S3_BUCKET;
@@ -111,7 +106,7 @@ class Plugin extends Base
         return $this->configModel->get('aws_s3_bucket');
     }
 
-    private function getAwsPrefix()
+    public function getAwsPrefix()
     {
         if (AWS_S3_PREFIX) {
             return AWS_S3_PREFIX;
