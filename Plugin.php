@@ -8,7 +8,7 @@ use Kanboard\Core\Translator;
 defined('AWS_KEY') or define('AWS_KEY', '');
 defined('AWS_SECRET') or define('AWS_SECRET', '');
 defined('AWS_S3_BUCKET') or define('AWS_S3_BUCKET', '');
-defined('AWS_S3_REGION') or define('AWS_S3_REGION', 'us-east-1');
+defined('AWS_S3_REGION') or define('AWS_S3_REGION', '');
 defined('AWS_S3_PREFIX') or define('AWS_S3_PREFIX', '');
 
 class Plugin extends Base
@@ -94,7 +94,12 @@ class Plugin extends Base
             return AWS_S3_REGION;
         }
 
-        return $this->configModel->get('aws_s3_region');
+        $configRegion = $this->configModel->get('aws_s3_region');
+        if (!$configRegion) {
+            return 'us-east-1';
+        } else {
+            return $configRegion;
+        }
     }
 
     private function getAwsBucket()
