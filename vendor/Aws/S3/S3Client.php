@@ -170,6 +170,15 @@ class S3Client extends AwsClient implements S3ClientInterface
                     . ' be accessed via an Accelerate endpoint.',
                 'default' => false,
             ],
+            'use_dual_stack_endpoint' => [
+                'type' => 'config',
+                'valid' => ['bool'],
+                'doc' => 'Set to true to send requests to an S3 Dual Stack'
+                    . ' endpoint by default, which enables IPv6 Protocol.'
+                    . ' Can be enabled or disabled on individual operations by setting'
+                    . ' \'@use_dual_stack_endpoint\' to true or false.',
+                'default' => false,
+            ],
         ];
     }
 
@@ -191,6 +200,11 @@ class S3Client extends AwsClient implements S3ClientInterface
      *   individual operations by setting '@use_accelerate_endpoint' to true or
      *   false. Note: you must enable S3 Accelerate on a bucket before it can be
      *   accessed via an Accelerate endpoint.
+     * - use_dual_stack_endpoint: (bool) Set to true to send requests to an S3
+     *   Dual Stack endpoint by default, which enables IPv6 Protocol.
+     *   Can be enabled or disabled on individual operations by setting
+     *   '@use_dual_stack_endpoint\' to true or false. Note:
+     *   you cannot use it together with an accelerate endpoint.
      *
      * @param array $args
      */
@@ -204,9 +218,16 @@ class S3Client extends AwsClient implements S3ClientInterface
             Middleware::contentType(['PutObject', 'UploadPart']),
             's3.content_type'
         );
+
         $stack->appendBuild(
-            AccelerateMiddleware::wrap($this->getConfig('use_accelerate_endpoint')),
-            's3.use_accelerate_endpoint'
+            S3EndpointMiddleware::wrap(
+                $this->getRegion(),
+                [
+                    'dual_stack' => $this->getConfig('use_dual_stack_endpoint'),
+                    'accelerate' => $this->getConfig('use_accelerate_endpoint')
+                ]
+            ),
+            's3.endpoint_middleware'
         );
 
         // Use the bucket style middleware when using a "bucket_endpoint" (for cnames)
