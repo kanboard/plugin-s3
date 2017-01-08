@@ -2,7 +2,7 @@
     <i class="fa fa-amazon fa-fw" aria-hidden="true"></i>
     Amazon S3 Storage
 </h3>
-<div class="listing">
+<div class="panel">
     <?= $this->form->label(t('AWS S3 region'), 'aws_s3_region') ?>
     <?= $this->form->text('aws_s3_region', $values) ?>
 
