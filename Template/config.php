@@ -18,6 +18,9 @@
     <?= $this->form->label(t('AWS Secret Key'), 'aws_secret_access_key') ?>
     <?= $this->form->password('aws_secret_access_key', $values) ?>
 
+    <?= $this->form->label(t('AWS S3 custom options'), 'aws_s3_options') ?>
+    <?= $this->form->text('aws_s3_options', $values) ?>
+
     <p class="form-help"><a href="https://github.com/kanboard/plugin-s3#configuration" target="_blank"><?= t('Help on Amazon S3 integration') ?></a></p>
 
     <div class="form-actions">

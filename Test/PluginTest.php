@@ -94,6 +94,11 @@ class PluginTest extends Base
         $this->assertEmpty($this->plugin->getAwsPrefix());
     }
 
+    public function testGetAwsOptionsDefaultValue()
+    {
+        $this->assertEmpty($this->plugin->getAwsOptions());
+    }
+
     public function testGetAwsPrefixWithValueDefinedInDb()
     {
         $this->container['configModel']->save(['aws_s3_prefix' => 'prefix']);
