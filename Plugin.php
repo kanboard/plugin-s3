@@ -10,6 +10,7 @@ defined('AWS_SECRET') or define('AWS_SECRET', '');
 defined('AWS_S3_BUCKET') or define('AWS_S3_BUCKET', '');
 defined('AWS_S3_REGION') or define('AWS_S3_REGION', '');
 defined('AWS_S3_PREFIX') or define('AWS_S3_PREFIX', '');
+defined('AWS_S3_OPTIONS') or define('AWS_S3_OPTIONS', '');
 
 class Plugin extends Base
 {
@@ -22,7 +23,8 @@ class Plugin extends Base
                     $this->getAwsSecretKey(),
                     $this->getAwsRegion(),
                     $this->getAwsBucket(),
-                    $this->getAwsPrefix()
+                    $this->getAwsPrefix(),
+                    $this->getAwsOptions()
                 );
             };
         }
@@ -118,5 +120,14 @@ class Plugin extends Base
         }
 
         return $this->configModel->get('aws_s3_prefix');
+    }
+
+    public function getAwsOptions()
+    {
+        if (AWS_S3_OPTIONS) {
+            return json_decode(AWS_S3_OPTIONS, true);
+        }
+
+        return json_decode($this->configModel->get('aws_s3_options') ?: '{}', true);
     }
 }

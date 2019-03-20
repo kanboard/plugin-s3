@@ -42,16 +42,18 @@ class S3Storage implements ObjectStorageInterface
      * @param  string $bucket AWS S3 bucket
      * @param  string $prefix Object prefix
      */
-    public function __construct($key, $secret, $region, $bucket, $prefix)
+    public function __construct($key, $secret, $region, $bucket, $prefix, $custom_options)
     {
         $this->bucket = $bucket;
         $credentials = new Credentials($key, $secret);
-
-        $this->client = new S3Client([
+        
+        $opts = array_merge([
             'credentials' => $credentials,
             'region' => $region,
             'version' => '2006-03-01',
-        ]);
+        ], $custom_options);
+
+        $this->client = new S3Client($opts);
 
         $this->client->registerStreamWrapper();
         $this->prefix = $prefix;
