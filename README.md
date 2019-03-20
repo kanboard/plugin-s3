@@ -16,7 +16,7 @@ Requirements
 
 - Kanboard >= 1.0.37
 - PHP >= 5.5
-- Amazon AWS account
+- Account with Amazon AWS, or other S3 compatible service
 
 Installation
 ------------
@@ -53,6 +53,9 @@ define('AWS_S3_PREFIX', '');
 
 // Set the region of your bucket
 define('AWS_S3_REGION', 'us-east-1');
+
+// Use AWS_S3_OPTIONS to configure custom end-point, like Minio
+define('AWS_S3_OPTIONS', json_encode(['version' => 'latest', 'endpoint' => 'https://my.minio.io', 'use_path_style_endpoint' => true]));
 ```
 
 ### Notes
