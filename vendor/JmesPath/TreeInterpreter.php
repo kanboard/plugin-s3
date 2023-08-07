@@ -10,9 +10,9 @@ class TreeInterpreter
     private $fnDispatcher;
 
     /**
-     * @param callable $fnDispatcher Function dispatching function that accepts
-     *                               a function name argument and an array of
-     *                               function arguments and returns the result.
+     * @param callable|null $fnDispatcher Function dispatching function that accepts
+     *                                    a function name argument and an array of
+     *                                    function arguments and returns the result.
      */
     public function __construct(callable $fnDispatcher = null)
     {
@@ -220,7 +220,7 @@ class TreeInterpreter
      */
     private static function relativeCmp($left, $right, $cmp)
     {
-        if (!is_int($left) || !is_int($right)) {
+        if (!(is_int($left) || is_float($left)) || !(is_int($right) || is_float($right))) {
             return false;
         }
 

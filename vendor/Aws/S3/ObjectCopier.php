@@ -1,9 +1,12 @@
 <?php
 namespace Aws\S3;
 
+use Aws\Arn\ArnParser;
+use Aws\Arn\S3\AccessPointArn;
 use Aws\Exception\MultipartUploadException;
 use Aws\Result;
 use Aws\S3\Exception\S3Exception;
+use GuzzleHttp\Promise\Coroutine;
 use GuzzleHttp\Promise\PromisorInterface;
 use InvalidArgumentException;
 
@@ -22,6 +25,7 @@ class ObjectCopier implements PromisorInterface
     private $options;
 
     private static $defaults = [
+        'before_lookup' => null,
         'before_upload' => null,
         'concurrency'   => 5,
         'mup_threshold' => self::DEFAULT_MULTIPART_THRESHOLD,
@@ -45,7 +49,9 @@ class ObjectCopier implements PromisorInterface
      * @param string            $acl            ACL to apply to the copy
      *                                          (default: private).
      * @param array             $options        Options used to configure the
-     *                                          copy process.
+     *                                          copy process. Options passed in
+     *                                          through 'params' are added to
+     *                                          the sub commands.
      *
      * @throws InvalidArgumentException
      */
@@ -71,13 +77,20 @@ class ObjectCopier implements PromisorInterface
      * fulfilled with the result of the CompleteMultipartUpload or CopyObject
      * operation or rejected with an exception.
      *
-     * @return \GuzzleHttp\Promise\Promise
+     * @return Coroutine
      */
     public function promise()
     {
-        return \GuzzleHttp\Promise\coroutine(function () {
+        return Coroutine::of(function () {
+            $headObjectCommand = $this->client->getCommand(
+                'HeadObject',
+                $this->options['params'] + $this->source
+            );
+            if (is_callable($this->options['before_lookup'])) {
+                $this->options['before_lookup']($headObjectCommand);
+            }
             $objectStats = (yield $this->client->executeAsync(
-                $this->client->getCommand('HeadObject', $this->source)
+                $headObjectCommand
             ));
 
             if ($objectStats['ContentLength'] > $this->options['mup_threshold']) {
@@ -131,8 +144,22 @@ class ObjectCopier implements PromisorInterface
 
     private function getSourcePath()
     {
-        $sourcePath = "/{$this->source['Bucket']}/"
-            . rawurlencode($this->source['Key']);
+        $path = "/{$this->source['Bucket']}/";
+        if (ArnParser::isArn($this->source['Bucket'])) {
+            try {
+                new AccessPointArn($this->source['Bucket']);
+                $path = "{$this->source['Bucket']}/object/";
+            } catch (\Exception $e) {
+                throw new \InvalidArgumentException(
+                    'Provided ARN was a not a valid S3 access point ARN ('
+                    . $e->getMessage() . ')',
+                    0,
+                    $e
+                );
+            }
+        }
+
+        $sourcePath = $path . rawurlencode($this->source['Key']);
         if (isset($this->source['VersionId'])) {
             $sourcePath .= "?versionId={$this->source['VersionId']}";
         }

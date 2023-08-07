@@ -3,7 +3,8 @@ namespace Aws;
 
 use Aws\Endpoint\PartitionEndpointProvider;
 use Aws\Endpoint\PartitionInterface;
-use GuzzleHttp\Promise\FulfilledPromise;
+use Aws\EndpointV2\EndpointProviderV2;
+use Aws\EndpointV2\EndpointDefinitionProvider;
 
 class MultiRegionClient implements AwsClientInterface
 {
@@ -19,6 +20,12 @@ class MultiRegionClient implements AwsClientInterface
     private $args;
     /** @var array */
     private $config;
+    /** @var HandlerList */
+    private $handlerList;
+    /** @var array */
+    private $aliases;
+    /** @var callable */
+    private $customHandler;
 
     public static function getArguments()
     {
@@ -75,9 +82,12 @@ class MultiRegionClient implements AwsClientInterface
                             . ' or "aws-us-gov").'
                         );
                     }
-
-                    $args['partition'] = $value;
-                    $args['endpoint_provider'] = $value;
+                    $ruleset = EndpointDefinitionProvider::getEndpointRuleset(
+                        $args['service'],
+                        isset($args['version']) ? $args['version'] : 'latest'
+                    );
+                    $partitions = EndpointDefinitionProvider::getPartitions();
+                    $args['endpoint_provider'] = new EndpointProviderV2($ruleset, $partitions);
                 }
             ],
         ];
@@ -103,9 +113,23 @@ class MultiRegionClient implements AwsClientInterface
             $args['service'] = $this->parseClass();
         }
 
+        $this->handlerList = new HandlerList(function (
+            CommandInterface $command
+        ) {
+            list($region, $args) = $this->getRegionFromArgs($command->toArray());
+            $command = $this->getClientFromPool($region)
+                ->getCommand($command->getName(), $args);
+
+            if ($this->isUseCustomHandler()) {
+                $command->getHandlerList()->setHandler($this->customHandler);
+            }
+
+            return $this->executeAsync($command);
+        });
+
         $argDefinitions = static::getArguments();
         $resolver = new ClientResolver($argDefinitions);
-        $args = $resolver->resolve($args, new HandlerList);
+        $args = $resolver->resolve($args, $this->handlerList);
         $this->config = $args['config'];
         $this->factory = $args['client_factory'];
         $this->partition = $args['partition'];
@@ -143,9 +167,7 @@ class MultiRegionClient implements AwsClientInterface
      */
     public function getCommand($name, array $args = [])
     {
-        list($region, $args) = $this->getRegionFromArgs($args);
-
-        return $this->getClientFromPool($region)->getCommand($name, $args);
+        return new Command($name, $args, clone $this->getHandlerList());
     }
 
     public function getConfig($option = null)
@@ -168,7 +190,7 @@ class MultiRegionClient implements AwsClientInterface
 
     public function getHandlerList()
     {
-        return $this->getClientFromPool()->getHandlerList();
+        return $this->handlerList;
     }
 
     public function getApi()
@@ -179,6 +201,16 @@ class MultiRegionClient implements AwsClientInterface
     public function getEndpoint()
     {
         return $this->getClientFromPool()->getEndpoint();
+    }
+
+    public function useCustomHandler(callable $handler)
+    {
+        $this->customHandler = $handler;
+    }
+
+    private function isUseCustomHandler()
+    {
+        return isset($this->customHandler);
     }
 
     /**

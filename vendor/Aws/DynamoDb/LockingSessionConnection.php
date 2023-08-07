@@ -10,11 +10,7 @@ class LockingSessionConnection extends StandardSessionConnection
 {
     public function __construct(DynamoDbClient $client, array $config = [])
     {
-        parent::__construct($client, $config + [
-            'max_lock_wait_time'       => 10,
-            'min_lock_retry_microtime' => 10000,
-            'max_lock_retry_microtime' => 50000,
-        ]);
+        parent::__construct($client, $config);
     }
 
     /**
@@ -26,7 +22,7 @@ class LockingSessionConnection extends StandardSessionConnection
         // Create the params for the UpdateItem operation so that a lock can be
         // set and item returned (via ReturnValues) in a one, atomic operation.
         $params = [
-            'TableName'        => $this->config['table_name'],
+            'TableName'        => $this->getTableName(),
             'Key'              => $this->formatKey($id),
             'Expected'         => ['lock' => ['Exists' => false]],
             'AttributeUpdates' => ['lock' => ['Value' => ['N' => '1']]],
@@ -34,7 +30,7 @@ class LockingSessionConnection extends StandardSessionConnection
         ];
 
         // Acquire the lock and fetch the item data.
-        $timeout  = time() + $this->config['max_lock_wait_time'];
+        $timeout  = time() + $this->getMaxLockWaitTime();
         while (true) {
             try {
                 $item = [];
@@ -49,9 +45,9 @@ class LockingSessionConnection extends StandardSessionConnection
                 if ($e->getAwsErrorCode() === 'ConditionalCheckFailedException'
                     && time() < $timeout
                 ) {
-                    usleep(pow(10, -6) * rand(
-                        $this->config['min_lock_retry_microtime'],
-                        $this->config['max_lock_retry_microtime']
+                    usleep(rand(
+                        $this->getMinLockRetryMicrotime(),
+                        $this->getMaxLockRetryMicrotime()
                     ));
                 } else {
                     break;
