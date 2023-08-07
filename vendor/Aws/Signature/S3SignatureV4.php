@@ -9,32 +9,48 @@ use Psr\Http\Message\RequestInterface;
  */
 class S3SignatureV4 extends SignatureV4
 {
-    const UNSIGNED_PAYLOAD = 'UNSIGNED-PAYLOAD';
-    
     /**
-     * Always add a x-amz-content-sha-256 for data integrity.
+     * S3-specific signing logic
+     *
+     * {@inheritdoc}
      */
+    use SignatureTrait;
+
     public function signRequest(
         RequestInterface $request,
-        CredentialsInterface $credentials
+        CredentialsInterface $credentials,
+        $signingService = null
     ) {
+        // Always add a x-amz-content-sha-256 for data integrity
         if (!$request->hasHeader('x-amz-content-sha256')) {
             $request = $request->withHeader(
-                'X-Amz-Content-Sha256',
+                'x-amz-content-sha256',
                 $this->getPayload($request)
             );
         }
-
-        return parent::signRequest($request, $credentials);
+        $useCrt =
+            strpos($request->getUri()->getHost(), "accesspoint.s3-global")
+            !== false;
+        if (!$useCrt) {
+            if (strpos($request->getUri()->getHost(), "s3-object-lambda")) {
+                return parent::signRequest($request, $credentials, "s3-object-lambda");
+            }
+            return parent::signRequest($request, $credentials);
+        }
+        $signingService = $signingService ?: 's3';
+        return $this->signWithV4a($credentials, $request, $signingService);
     }
 
     /**
      * Always add a x-amz-content-sha-256 for data integrity.
+     *
+     * {@inheritdoc}
      */
     public function presign(
         RequestInterface $request,
         CredentialsInterface $credentials,
-        $expires
+        $expires,
+        array $options = []
     ) {
         if (!$request->hasHeader('x-amz-content-sha256')) {
             $request = $request->withHeader(
@@ -42,8 +58,11 @@ class S3SignatureV4 extends SignatureV4
                 $this->getPresignedPayload($request)
             );
         }
+        if (strpos($request->getUri()->getHost(), "accesspoint.s3-global")) {
+            $request = $request->withHeader("x-amz-region-set", "*");
+        }
 
-        return parent::presign($request, $credentials, $expires);
+        return parent::presign($request, $credentials, $expires, $options);
     }
 
     /**
@@ -52,7 +71,7 @@ class S3SignatureV4 extends SignatureV4
      */
     protected function getPresignedPayload(RequestInterface $request)
     {
-        return self::UNSIGNED_PAYLOAD;
+        return SignatureV4::UNSIGNED_PAYLOAD;
     }
 
     /**
@@ -60,6 +79,10 @@ class S3SignatureV4 extends SignatureV4
      */
     protected function createCanonicalizedPath($path)
     {
-        return '/' . ltrim($path, '/');
+        // Only remove one slash in case of keys that have a preceding slash
+        if (substr($path, 0, 1) === '/') {
+            $path = substr($path, 1);
+        }
+        return '/' . $path;
     }
 }

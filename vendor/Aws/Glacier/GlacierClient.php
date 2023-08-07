@@ -61,10 +61,14 @@ use Psr\Http\Message\RequestInterface;
  * @method \GuzzleHttp\Promise\Promise listMultipartUploadsAsync(array $args = [])
  * @method \Aws\Result listParts(array $args = [])
  * @method \GuzzleHttp\Promise\Promise listPartsAsync(array $args = [])
+ * @method \Aws\Result listProvisionedCapacity(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise listProvisionedCapacityAsync(array $args = [])
  * @method \Aws\Result listTagsForVault(array $args = [])
  * @method \GuzzleHttp\Promise\Promise listTagsForVaultAsync(array $args = [])
  * @method \Aws\Result listVaults(array $args = [])
  * @method \GuzzleHttp\Promise\Promise listVaultsAsync(array $args = [])
+ * @method \Aws\Result purchaseProvisionedCapacity(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise purchaseProvisionedCapacityAsync(array $args = [])
  * @method \Aws\Result removeTagsFromVault(array $args = [])
  * @method \GuzzleHttp\Promise\Promise removeTagsFromVaultAsync(array $args = [])
  * @method \Aws\Result setDataRetrievalPolicy(array $args = [])
@@ -142,7 +146,7 @@ class GlacierClient extends AwsClient
                     if (!$command['checksum']) {
                         $body = new HashingStream(
                             $body, new TreeHash(),
-                            function ($result) use ($command, &$request) {
+                            function ($result) use (&$request) {
                                 $request = $request->withHeader(
                                     'x-amz-sha256-tree-hash',
                                     bin2hex($result)

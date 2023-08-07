@@ -23,7 +23,7 @@ class TreeCompiler
         $this->source = $this->indentation = '';
         $this->write("<?php\n")
             ->write('use JmesPath\\TreeInterpreter as Ti;')
-            ->write('use JmesPath\\FnDispatcher as Fn;')
+            ->write('use JmesPath\\FnDispatcher as Fd;')
             ->write('use JmesPath\\Utils;')
             ->write('')
             ->write('function %s(Ti $interpreter, $value) {', $fnName)
@@ -257,7 +257,7 @@ class TreeCompiler
         }
 
         return $this->write(
-            '$value = Fn::getInstance()->__invoke("%s", %s);',
+            '$value = Fd::getInstance()->__invoke("%s", %s);',
             $node['value'], $args
         );
     }
@@ -401,8 +401,8 @@ class TreeCompiler
             $this->write('$value = !Utils::isEqual(%s, %s);', $a, $b);
         } else {
             $this->write(
-                '$value = is_int(%s) && is_int(%s) && %s %s %s;',
-                $a, $b, $a, $node['value'], $b
+                '$value = (is_int(%s) || is_float(%s)) && (is_int(%s) || is_float(%s)) && %s %s %s;',
+                $a, $a, $b, $b, $a, $node['value'], $b
             );
         }
 

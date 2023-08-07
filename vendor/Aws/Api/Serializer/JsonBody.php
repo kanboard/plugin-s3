@@ -4,6 +4,7 @@ namespace Aws\Api\Serializer;
 use Aws\Api\Service;
 use Aws\Api\Shape;
 use Aws\Api\TimestampShape;
+use Aws\Exception\InvalidJsonException;
 
 /**
  * Formats the JSON body of a JSON-REST or JSON-RPC operation.
@@ -27,8 +28,17 @@ class JsonBody
      */
     public static function getContentType(Service $service)
     {
-        return 'application/x-amz-json-'
-            . number_format($service->getMetadata('jsonVersion'), 1);
+        if ($service->getMetadata('protocol') === 'rest-json') {
+            return 'application/json';
+        }
+
+        $jsonVersion = $service->getMetadata('jsonVersion');
+        if (empty($jsonVersion)) {
+            throw new \InvalidArgumentException('invalid json');
+        } else {
+            return 'application/x-amz-json-'
+                . @number_format($service->getMetadata('jsonVersion'), 1);
+        }
     }
 
     /**
@@ -42,7 +52,6 @@ class JsonBody
     public function build(Shape $shape, array $args)
     {
         $result = json_encode($this->format($shape, $args));
-
         return $result == '[]' ? '{}' : $result;
     }
 
@@ -51,6 +60,9 @@ class JsonBody
         switch ($shape['type']) {
             case 'structure':
                 $data = [];
+                if (isset($shape['document']) && $shape['document']) {
+                    return $value;
+                }
                 foreach ($value as $k => $v) {
                     if ($v !== null && $shape->hasMember($k)) {
                         $valueShape = $shape->getMember($k);
@@ -58,12 +70,15 @@ class JsonBody
                             = $this->format($valueShape, $v);
                     }
                 }
+                if (empty($data)) {
+                    return new \stdClass;
+                }
                 return $data;
 
             case 'list':
                 $items = $shape->getMember();
-                foreach ($value as &$v) {
-                    $v = $this->format($items, $v);
+                foreach ($value as $k => $v) {
+                    $value[$k] = $this->format($items, $v);
                 }
                 return $value;
 
@@ -72,8 +87,8 @@ class JsonBody
                     return new \stdClass;
                 }
                 $values = $shape->getValue();
-                foreach ($value as &$v) {
-                    $v = $this->format($values, $v);
+                foreach ($value as $k => $v) {
+                    $value[$k] = $this->format($values, $v);
                 }
                 return $value;
 
@@ -81,7 +96,10 @@ class JsonBody
                 return base64_encode($value);
 
             case 'timestamp':
-                return TimestampShape::format($value, 'unixTimestamp');
+                $timestampFormat = !empty($shape['timestampFormat'])
+                    ? $shape['timestampFormat']
+                    : 'unixTimestamp';
+                return TimestampShape::format($value, $timestampFormat);
 
             default:
                 return $value;

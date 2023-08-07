@@ -11,6 +11,9 @@ class HashingStream implements StreamInterface
 {
     use StreamDecoratorTrait;
 
+    /** @var StreamInterface */
+    private $stream;
+
     /** @var HashInterface */
     private $hash;
 
@@ -52,9 +55,9 @@ class HashingStream implements StreamInterface
         if ($offset === 0) {
             $this->hash->reset();
             return $this->stream->seek($offset);
-        } else {
-            // Seeking arbitrarily is not supported.
-            return false;
         }
+
+        // Seeking arbitrarily is not supported.
+        return false;
     }
 }
