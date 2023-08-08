@@ -11,13 +11,13 @@ class PluginTest extends Base
      */
     protected $plugin;
 
-    public function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->plugin = new Plugin($this->container);
     }
 
-    public function testPlugin()
+    public function testPlugin(): void
     {
         $this->assertSame(null, $this->plugin->initialize());
         $this->assertSame(null, $this->plugin->onStartup());
@@ -28,12 +28,12 @@ class PluginTest extends Base
         $this->assertNotEmpty($this->plugin->getPluginHomepage());
     }
 
-    public function testIsConfigured()
+    public function testIsConfigured(): void
     {
         $this->assertFalse($this->plugin->isConfigured());
     }
 
-    public function testIsConfiguredWithAllValuesDefined()
+    public function testIsConfiguredWithAllValuesDefined(): void
     {
         $this->container['configModel']->save([
             'aws_access_key_id' => 'key',
@@ -45,61 +45,61 @@ class PluginTest extends Base
         $this->assertTrue($this->plugin->isConfigured());
     }
 
-    public function testGetAwsAccessKeyDefaultValue()
+    public function testGetAwsAccessKeyDefaultValue(): void
     {
         $this->assertEmpty($this->plugin->getAwsAccessKey());
     }
 
-    public function testGetAwsAccessKeyWithValueDefinedInDb()
+    public function testGetAwsAccessKeyWithValueDefinedInDb(): void
     {
         $this->container['configModel']->save(['aws_access_key_id' => 'key']);
         $this->assertEquals('key', $this->plugin->getAwsAccessKey());
     }
 
-    public function testGetAwsSecretKeyDefaultValue()
+    public function testGetAwsSecretKeyDefaultValue(): void
     {
         $this->assertEmpty($this->plugin->getAwsSecretKey());
     }
 
-    public function testGetAwsSecretKeyWithValueDefinedInDb()
+    public function testGetAwsSecretKeyWithValueDefinedInDb(): void
     {
         $this->container['configModel']->save(['aws_secret_access_key' => 'secret']);
         $this->assertEquals('secret', $this->plugin->getAwsSecretKey());
     }
 
-    public function testGetAwsRegionDefaultValue()
+    public function testGetAwsRegionDefaultValue(): void
     {
         $this->assertEmpty($this->plugin->getAwsRegion());
     }
 
-    public function testGetAwsRegionWithValueDefinedInDb()
+    public function testGetAwsRegionWithValueDefinedInDb(): void
     {
         $this->container['configModel']->save(['aws_s3_region' => 'region']);
         $this->assertEquals('region', $this->plugin->getAwsRegion());
     }
 
-    public function testGetAwsBucketDefaultValue()
+    public function testGetAwsBucketDefaultValue(): void
     {
         $this->assertEmpty($this->plugin->getAwsBucket());
     }
 
-    public function testGetAwsBucketWithValueDefinedInDb()
+    public function testGetAwsBucketWithValueDefinedInDb(): void
     {
         $this->container['configModel']->save(['aws_s3_bucket' => 'bucket']);
         $this->assertEquals('bucket', $this->plugin->getAwsBucket());
     }
 
-    public function testGetAwsPrefixDefaultValue()
+    public function testGetAwsPrefixDefaultValue(): void
     {
         $this->assertEmpty($this->plugin->getAwsPrefix());
     }
 
-    public function testGetAwsOptionsDefaultValue()
+    public function testGetAwsOptionsDefaultValue(): void
     {
         $this->assertEmpty($this->plugin->getAwsOptions());
     }
 
-    public function testGetAwsPrefixWithValueDefinedInDb()
+    public function testGetAwsPrefixWithValueDefinedInDb(): void
     {
         $this->container['configModel']->save(['aws_s3_prefix' => 'prefix']);
         $this->assertEquals('prefix', $this->plugin->getAwsPrefix());
